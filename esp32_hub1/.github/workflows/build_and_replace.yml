@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'esp32_hub1/src/src.ino'
+  workflow_dispatch:  # ✅ manual trigger
 
 jobs:
   build-esp32:
