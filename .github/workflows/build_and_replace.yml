@@ -9,6 +9,8 @@ on:
 jobs:
   build-esp32:
     runs-on: self-hosted
+    env:
+      PATH: "/home/runner/actions-runner/bin:${PATH}"  # 🔧 ensure arduino-cli is visible
 
     steps:
       - name: Checkout repo
