@@ -16,8 +16,24 @@ jobs:
 
       - name: Compile ESP32 sketch
         run: |
-          /home/runner/bin/arduino-cli compile \
-            --config-file /home/runner/.arduino15/arduino-cli.yaml \
+          export PATH=/home/runner/bin:$PATH
+          
+          # Manually configure CLI to use known config paths, not temp HOME
+          export ARDUINO_DATA_DIR=/home/runner/arduino
+          export ARDUINO_USER_DIR=/home/runner/arduino/sketches
+          export ARDUINO_CONFIG_DIR=/home/runner/.arduino15
+          
+          # Force-add board index URL (in case config file is ignored)
+          arduino-cli core update-index \
+            --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+
+          # Ensure core is installed (skip if already there)
+          arduino-cli core list | grep esp32 || \
+            arduino-cli core install esp32:esp32 \
+              --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+
+          # Compile
+          arduino-cli compile \
             --fqbn esp32:esp32:esp32dev \
             --build-path /home/runner/build \
             esp32_hub1/src
