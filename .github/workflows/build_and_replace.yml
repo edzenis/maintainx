@@ -16,12 +16,12 @@ jobs:
 
       - name: Compile sketch
         run: |
-          /home/runner/bin/arduino-cli compile --fqbn esp32:esp32:esp32dev esp32_hub1/src
+          /home/runner/bin/arduino-cli compile --fqbn esp32:esp32:esp32 esp32_hub1/src
 
-      - name: Move firmware file
+      - name: Handle firmware
         run: |
-          mkdir -p esp32_hub1
-          if [ -f esp32_hub1/firmware.bin ]; then
-            mv esp32_hub1/firmware.bin esp32_hub1/firmware_old.bin
+          cd esp32_hub1
+          if [ -f firmware.bin ]; then
+            mv -f firmware.bin firmware_old.bin
           fi
-          cp esp32_hub1/src/build/esp32/esp32dev/src.ino.ino.bin esp32_hub1/firmware.bin
+          cp src/build/esp32.esp32.esp32/src.ino.ino.bin firmware.bin
