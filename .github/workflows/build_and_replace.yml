@@ -1,42 +1,19 @@
-name: Build and Replace Firmware
+name: Build ESP32 Sketch
 
 on:
   push:
     paths:
-      - 'esp32_hub1/src/src.ino'
-  workflow_dispatch:  # ✅ manual trigger
+      - '**/*.ino'
+  workflow_dispatch:
 
 jobs:
-  build-esp32:
+  build:
     runs-on: self-hosted
-    env:
-      PATH: "/home/runner/actions-runner/bin:${PATH}"  # 🔧 ensure arduino-cli is visible
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Compile with arduino-cli
+      - name: Compile sketch
         run: |
-          cd esp32_hub1
-          /home/runner/actions-runner/bin/arduino-cli compile \
-            --fqbn esp32:esp32:esp32 \
-            --output-dir ./build ./src
-
-      - name: Move old firmware.bin to firmware.old.bin
-        run: |
-          cd esp32_hub1
-          if [ -f firmware.bin ]; then mv firmware.bin firmware.old.bin; fi
-
-      - name: Copy compiled binary to firmware.bin
-        run: |
-          cd esp32_hub1
-          cp build/src.ino.bin firmware.bin
-
-      - name: Commit and push updated firmware
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add esp32_hub1/firmware.*
-          git commit -m "Auto-update firmware.bin after build"
-          git push
+          arduino-cli compile --fqbn esp32:esp32:esp32dev sketch.ino
