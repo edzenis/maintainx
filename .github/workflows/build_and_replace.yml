@@ -3,7 +3,7 @@ name: Build ESP32 Sketch
 on:
   push:
     paths:
-      - 'esp32_hub1/src/src.ino.ino'
+      - 'esp32_hub1/src/src.ino'
   workflow_dispatch:
 
 jobs:
@@ -14,6 +14,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Compile sketch
+      - name: Compile ESP32 sketch
         run: |
-          arduino-cli compile --fqbn esp32:esp32:esp32dev sketch.ino
+          arduino-cli compile --fqbn esp32:esp32:esp32dev esp32_hub1/src
+
+      - name: Move compiled firmware to esp32_hub1
+        run: |
+          cd esp32_hub1
+
+          # If old firmware exists, rename it
+          if [ -f firmware.bin ]; then
+            mv firmware.bin firmware_old.bin
+          fi
+
+          # Find the freshly built .bin file
+          NEW_BIN=$(find ../ -type f -name "src.ino.ino.bin" | head -n 1)
+
+          # Copy it as firmware.bin
+          cp "$NEW_BIN" firmware.bin
