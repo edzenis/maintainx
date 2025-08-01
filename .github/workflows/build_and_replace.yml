@@ -14,6 +14,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Auto-install libraries from ino
+        run: |
+          echo "Installing Arduino libraries used in src.ino..."
+          grep '^#include <' esp32_hub1/src/src.ino \
+            | sed 's/#include <\(.*\)\.h>/\1/' \
+            | grep -vE '^(WiFi|Wire|SPI|FS|EEPROM|Update|WebServer|WiFiClientSecure|HTTPClient|ArduinoOTA|Preferences|ESP.*)$' \
+            | sort -u \
+            | while read lib; do
+                echo "Installing: $lib"
+                /home/runner/bin/arduino-cli lib install "$lib" || echo "⚠️ Failed to install $lib — ignoring"
+              done
+
       - name: Compile sketch
         run: |
           /home/runner/bin/arduino-cli compile --fqbn esp32:esp32:esp32 esp32_hub1/src
