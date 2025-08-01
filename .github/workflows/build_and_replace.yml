@@ -36,4 +36,4 @@ jobs:
           if [ -f firmware.bin ]; then
             mv -f firmware.bin firmware_old.bin
           fi
-          cp src/build/esp32.esp32.esp32/src.ino.ino.bin firmware.bin
+          cp src/build/esp32/esp32/esp32/src.ino.ino.bin firmware.bin
