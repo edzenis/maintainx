@@ -3,7 +3,7 @@ name: Build ESP32 Sketch
 on:
   push:
     paths:
-      - '**/*.ino'
+      - 'esp32_hub1/src/src.ino.ino'
   workflow_dispatch:
 
 jobs:
