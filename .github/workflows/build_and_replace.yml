@@ -11,35 +11,38 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo (with PAT)
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PUSH_TOKEN }}
 
-      - name: Auto-install Arduino libraries from ino
+      - name: Extract and install Arduino libraries
         run: |
-          grep -oP '(?<=#include <)\w+(?=\.h>)' esp32_hub1/src/src.ino | while read lib; do
-            echo "Installing: $lib"
-            /home/runner/bin/arduino-cli lib install "$lib" || true
+          echo "Installing Arduino libraries used in src.ino..."
+          grep -oP '(?<=#include <)[^>]+(?=>)' esp32_hub1/src/src.ino | while read lib; do
+            base=$(basename "$lib" .h)
+            /home/runner/bin/arduino-cli lib install "$base" || true
           done
 
-      - name: Compile sketch to local build folder
+      - name: Compile sketch
         run: |
           /home/runner/bin/arduino-cli compile \
             --fqbn esp32:esp32:esp32 \
             --output-dir ./esp32_hub1/build \
             esp32_hub1/src
 
-      - name: Move compiled firmware to root
+      - name: Rename and move firmware
         run: |
           cd esp32_hub1
           if [ -f firmware.bin ]; then
-            mv firmware.bin firmware_old.bin
+            mv -f firmware.bin firmware_old.bin
           fi
           cp build/src.ino.bin firmware.bin
 
-      - name: Push firmware.bin to GitHub
+      - name: Commit and push firmware
         run: |
+          git config --global user.name "Auto Firmware Builder"
           git config --global user.email "runner@github.com"
-          git config --global user.name "GitHub Runner"
-          git add esp32_hub1/firmware.bin esp32_hub1/firmware_old.bin || true
+          git add esp32_hub1/firmware*.bin
           git commit -m "🤖 Auto: Update compiled firmware"
-          git push https://x-access-token:${{ secrets.GH_PUSH_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
+          git push https://x-access-token:${{ secrets.GH_PUSH_TOKEN }}@github.com/edzenis/maintainx.git
