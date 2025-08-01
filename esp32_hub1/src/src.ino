@@ -57,7 +57,7 @@ void publishState2() { client.publish(TOPIC_STATE2, String(counter2).c_str(), tr
 void publishState3() { client.publish(TOPIC_STATE3, String(counter3).c_str(), true); }
 void publishState4() { client.publish(TOPIC_STATE4, String(counter4).c_str(), true); }
 void publishState5() { client.publish(TOPIC_STATE5, String(counter5).c_str(), true); }
-void publishVersion() { client.publish(TOPIC_VERSION, "V3", true); Serial.println("V3 (Counter 1)"); }
+void publishVersion() { client.publish(TOPIC_VERSION, "V4", true); Serial.println("V4 (Counter 1)"); }
 void publishStatus(const char* status) {
   client.publish(TOPIC_STATUS, status, true);
   Serial.print("OTA Status (Counter 1): ");
