@@ -1,4 +1,4 @@
-name: Build ESP32 Sketch
+name: Build and Push ESP32 Firmware
 
 on:
   push:
@@ -11,27 +11,35 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Auto-install Arduino libraries from src.ino
+      - name: Auto-install Arduino libraries from ino
         run: |
-          echo "Installing Arduino libraries used in src.ino..."
-          LIBS=$(grep -oP '(?<=#include <)[^>]+(?=>)' esp32_hub1/src/src.ino | cut -d. -f1 | sort -u)
-          for lib in $LIBS; do
+          grep -oP '(?<=#include <)\w+(?=\.h>)' esp32_hub1/src/src.ino | while read lib; do
             echo "Installing: $lib"
             /home/runner/bin/arduino-cli lib install "$lib" || true
           done
 
-      - name: Compile sketch
+      - name: Compile sketch to local build folder
         run: |
           /home/runner/bin/arduino-cli compile \
             --fqbn esp32:esp32:esp32 \
-            --output-dir esp32_hub1/build \
+            --output-dir ./esp32_hub1/build \
             esp32_hub1/src
 
-      - name: Rename final firmware
+      - name: Move compiled firmware to root
         run: |
           cd esp32_hub1
-          [ -f firmware.bin ] && mv firmware.bin firmware_old.bin
+          if [ -f firmware.bin ]; then
+            mv firmware.bin firmware_old.bin
+          fi
           cp build/src.ino.bin firmware.bin
+
+      - name: Push firmware.bin to GitHub
+        run: |
+          git config --global user.email "runner@github.com"
+          git config --global user.name "GitHub Runner"
+          git add esp32_hub1/firmware.bin esp32_hub1/firmware_old.bin || true
+          git commit -m "🤖 Auto: Update compiled firmware"
+          git push https://x-access-token:${{ secrets.GH_PUSH_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
