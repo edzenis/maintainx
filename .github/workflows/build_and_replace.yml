@@ -14,21 +14,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup CLI and board
+        run: |
+          export PATH=$PATH:/home/runner/bin
+          export ARDUINO_DATA_DIR=/home/runner/arduino
+          export ARDUINO_CONFIG_DIR=/home/runner/.arduino15
+          arduino-cli core list | grep esp32 || arduino-cli core install esp32:esp32
+
       - name: Compile ESP32 sketch
         run: |
-          /home/runner/bin/arduino-cli compile --fqbn esp32:esp32:esp32dev esp32_hub1/src
+          export PATH=$PATH:/home/runner/bin
+          export ARDUINO_DATA_DIR=/home/runner/arduino
+          export ARDUINO_CONFIG_DIR=/home/runner/.arduino15
+          arduino-cli compile --fqbn esp32:esp32:esp32dev esp32_hub1/src
 
       - name: Move compiled firmware to esp32_hub1
         run: |
           cd esp32_hub1
 
-          # Rename existing firmware.bin to firmware_old.bin if it exists
           if [ -f firmware.bin ]; then
             mv firmware.bin firmware_old.bin
           fi
 
-          # Find the compiled .bin file
           NEW_BIN=$(find ../ -type f -name "src.ino.ino.bin" | head -n 1)
-
-          # Copy the new binary to firmware.bin
           cp "$NEW_BIN" firmware.bin
