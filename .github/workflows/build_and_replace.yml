@@ -32,10 +32,10 @@ jobs:
 
       - name: Handle firmware
         run: |
-          cd esp32_hub1
-          if [ -f firmware.bin ]; then
-            mv -f firmware.bin firmware_old.bin
+          if [ -f esp32_hub1/firmware.bin ]; then
+            mv -f esp32_hub1/firmware.bin esp32_hub1/firmware_old.bin
           fi
-          BIN_FILE=$(find src/build -name "*.ino.bin" | head -n 1)
-          cp "$BIN_FILE" firmware.bin
+          BIN_FILE=$(find /home/runner/.arduino15 -name "*.ino.bin" | grep "esp32_hub1" | head -n 1)
+          cp "$BIN_FILE" esp32_hub1/firmware.bin
+
 
