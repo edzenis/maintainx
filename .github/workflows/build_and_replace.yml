@@ -14,37 +14,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Compile ESP32 sketch
+      - name: Compile sketch
         run: |
-          export PATH=/home/runner/bin:$PATH
-          
-          # Manually configure CLI to use known config paths, not temp HOME
-          export ARDUINO_DATA_DIR=/home/runner/arduino
-          export ARDUINO_USER_DIR=/home/runner/arduino/sketches
-          export ARDUINO_CONFIG_DIR=/home/runner/.arduino15
-          
-          # Force-add board index URL (in case config file is ignored)
-          arduino-cli core update-index \
-            --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          /home/runner/bin/arduino-cli compile --fqbn esp32:esp32:esp32dev esp32_hub1/src
 
-          # Ensure core is installed (skip if already there)
-          arduino-cli core list | grep esp32 || \
-            arduino-cli core install esp32:esp32 \
-              --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
-
-          # Compile
-          arduino-cli compile \
-            --fqbn esp32:esp32:esp32dev \
-            --build-path /home/runner/build \
-            esp32_hub1/src
-
-      - name: Move compiled firmware to esp32_hub1
+      - name: Move firmware file
         run: |
-          cd esp32_hub1
-
-          if [ -f firmware.bin ]; then
-            mv firmware.bin firmware_old.bin
+          mkdir -p esp32_hub1
+          if [ -f esp32_hub1/firmware.bin ]; then
+            mv esp32_hub1/firmware.bin esp32_hub1/firmware_old.bin
           fi
-
-          NEW_BIN=$(find /home/runner/build -name "*.bin" | head -n 1)
-          cp "$NEW_BIN" firmware.bin
+          cp esp32_hub1/src/build/esp32/esp32dev/src.ino.ino.bin esp32_hub1/firmware.bin
